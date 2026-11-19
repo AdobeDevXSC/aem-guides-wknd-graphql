@@ -89,6 +89,7 @@ jobs:
           REACT_APP_AUTH_TOKEN: ${{ vars.AEM_AUTH_TOKEN }}
           REACT_APP_HOST_URI: ${{ vars.NEXT_PUBLIC_AEM_HOST }}
           REACT_APP_GRAPHQL_ENDPOINT: ${{ vars.NEXT_PUBLIC_AEM_GRAPHQL_ENDPOINT }}
+          REACT_APP_UE_AEM_AUTHOR_URI: ${{ vars.AEM_AUTHOR_URL }}
 
       - name: Assemble site
         run: |
