@@ -93,12 +93,14 @@ jobs:
           REACT_APP_UE_AEM_AUTHOR_URI: ${{ vars.AEM_AUTHOR_URL }}
 
       - name: Assemble site
+        env:
+          AEM_AUTHOR_URL: ${{ vars.AEM_AUTHOR_URL }}
         run: |
           mkdir -p site
           cp -R out site/next-js
           cp -R ../react-app/build site/react-app
           touch site/.nojekyll
-          cp ../.github/pages/index.html site/index.html
+          sed "s|%AEM_AUTHOR_URL%|$AEM_AUTHOR_URL|" ../.github/pages/index.html > site/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
