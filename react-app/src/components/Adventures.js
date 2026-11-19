@@ -46,7 +46,7 @@ function AdventureListItem({ title, slug, primaryImage, tripLength, price }) {
     return (
         <li className="adventure-item">
             <Link to={`/adventure/${slug}`}>
-                <img className="adventure-item-image" src={addAemHost(primaryImage._dynamicUrl || primaryImage._path)}
+                <img className="adventure-item-image" src={addAemHost(primaryImage._path || primaryImage._dynamicUrl)}
                     alt={title} />
             </Link>
             <div className="adventure-item-length-price">

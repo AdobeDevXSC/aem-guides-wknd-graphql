@@ -73,7 +73,7 @@ function AdventureDetailRender({ title,
         </div>
         <div className="adventure-detail-content">
             <img className="adventure-detail-primaryimage"
-                src={addAemHost(primaryImage._dynamicUrl || primaryImage._path)} alt={title} />
+                src={addAemHost(primaryImage._path || primaryImage._dynamicUrl)} alt={title} />
             <div>{mapJsonRichText(description.json, customRenderOptions(references))}</div>
             <h2>Itinerary</h2>
             <hr />
