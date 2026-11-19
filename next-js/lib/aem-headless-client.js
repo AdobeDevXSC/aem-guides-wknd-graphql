@@ -73,6 +73,21 @@ class AemHeadlessClient {
 
 
   /**
+   * Picks the image URL for an AEM image reference and serves it from AEM.
+   * Author uses the asset _path; Publish prefers the Dynamic Media _dynamicUrl (resized, WebP).
+   *
+   * @param {*} image an AEM image reference with _path and/or _dynamicUrl
+   * @returns an absolute image URL, or undefined when there is no image
+   */
+  imageUrl(image) {
+    const isAuthor = /^https?:\/\/author-/.test(this.aemHost || '');
+    const url = isAuthor
+      ? image?._path || image?._dynamicUrl
+      : image?._dynamicUrl || image?._path;
+    return url ? this.serveFromAem(url) : undefined;
+  }
+
+  /**
    * Invokes the 'adventures-all` persisted query using the parameterizable namespace.
    * 
    * @returns a GraphQL response of all adventures.

@@ -9,7 +9,7 @@ it.
 import React, { useMemo } from 'react';
 import { Link, useParams } from "react-router-dom";
 import { useAdventureBySlug } from "../api/usePersistedQueries";
-import { addAemHost } from "../api/aemHeadlessClient";
+import { imageUrl } from "../api/aemHeadlessClient";
 
 import backIcon from '../images/icon-close.svg';
 import { mapJsonRichText } from '../utils/renderRichText';
@@ -73,7 +73,7 @@ function AdventureDetailRender({ title,
         </div>
         <div className="adventure-detail-content">
             <img className="adventure-detail-primaryimage"
-                src={addAemHost(primaryImage._path || primaryImage._dynamicUrl)} alt={title} />
+                src={imageUrl(primaryImage)} alt={title} />
             <div>{mapJsonRichText(description.json, customRenderOptions(references))}</div>
             <h2>Itinerary</h2>
             <hr />

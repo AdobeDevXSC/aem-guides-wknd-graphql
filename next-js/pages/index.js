@@ -56,7 +56,7 @@ export default function Adventures() {
                       title={title}
                       price={price}
                       duration={tripLength}
-                      imageSrc={aemHeadlessClient.serveFromAem(primaryImage?._path || primaryImage?._dynamicUrl)}
+                      imageSrc={aemHeadlessClient.imageUrl(primaryImage)}
                     />
                   );
                 }

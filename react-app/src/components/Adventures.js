@@ -9,7 +9,7 @@ it.
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useAdventuresByActivity } from "../api/usePersistedQueries";
-import { addAemHost } from "../api/aemHeadlessClient";
+import { imageUrl } from "../api/aemHeadlessClient";
 import Error from "./Error";
 import Loading from "./Loading";
 import './Adventures.scss';
@@ -46,7 +46,7 @@ function AdventureListItem({ title, slug, primaryImage, tripLength, price }) {
     return (
         <li className="adventure-item">
             <Link to={`/adventure/${slug}`}>
-                <img className="adventure-item-image" src={addAemHost(primaryImage._path || primaryImage._dynamicUrl)}
+                <img className="adventure-item-image" src={imageUrl(primaryImage)}
                     alt={title} />
             </Link>
             <div className="adventure-item-length-price">

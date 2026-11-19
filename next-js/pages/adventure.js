@@ -44,7 +44,7 @@ function AdventureView({ adventure }) {
             <div className="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 overflow-hidden lg:h-80 lg:aspect-none">
               <img
                 alt={title}
-                src={aemHeadlessClient.serveFromAem(primaryImage?._path || primaryImage?._dynamicUrl)}
+                src={aemHeadlessClient.imageUrl(primaryImage)}
                 className="w-full h-full object-center object-cover lg:w-full lg:h-full"
               />
             </div>
