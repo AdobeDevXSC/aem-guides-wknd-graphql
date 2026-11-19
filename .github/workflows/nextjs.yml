@@ -92,16 +92,7 @@ jobs:
           cp -R out site/next-js
           cp -R ../react-app/build site/react-app
           touch site/.nojekyll
-          cat > site/index.html <<'EOF'
-          <!doctype html>
-          <meta charset="utf-8">
-          <title>WKND</title>
-          <h1>WKND</h1>
-          <ul>
-            <li><a href="next-js/">Next.js app</a></li>
-            <li><a href="react-app/">React app</a></li>
-          </ul>
-          EOF
+          cp ../.github/pages/index.html site/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
