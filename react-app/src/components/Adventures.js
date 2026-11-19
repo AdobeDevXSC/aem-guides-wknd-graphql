@@ -15,7 +15,7 @@ import Loading from "./Loading";
 import './Adventures.scss';
 
 function Adventures({ adventureActivity }) {
-    const queryParameters = useMemo(() => ({ format: 'JPG', preferWebp: true, size: { width: 240, height: 200 } }), []);
+    const queryParameters = useMemo(() => ({ format: 'JPG', preferWebp: true, width: 240, height: 200 }), []);
     const { adventures, error } = useAdventuresByActivity(adventureActivity, queryParameters);
 
     // Handle error and loading conditions
