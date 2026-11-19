@@ -28,14 +28,17 @@ class AemHeadlessClient {
    * 
    * @param {*} serviceURL the AEM HOST this Next.js app will connect to.
    */
-  constructor({ serviceURL }) {
+  constructor({ serviceURL, proxyURL }) {
+    // Images are always served from the AEM host. GraphQL requests go through the proxy when one is configured
+    // (e.g. a CORS proxy for static hosting such as GitHub Pages), otherwise straight to AEM.
     this.aemHost = serviceURL;
     
     this.aemHeadlessClient = new AEMHeadless({
-      serviceURL: serviceURL,
+      serviceURL: proxyURL || serviceURL,
       endpoint: 'The endpoint is not used as it only applies to client-side GraphQL queries which are not Adobe best practices.',
       auth: this._getAuth(),
-      fetch: fetch
+      // wrapped so the browser's fetch keeps its window binding
+      fetch: (...args) => fetch(...args)
     });
   }
 
@@ -127,4 +130,7 @@ class AemHeadlessClient {
 /**
  * Export the initialized AEM Headless client object for use in the Next.js app
  */
-export default new AemHeadlessClient({ serviceURL: process.env.NEXT_PUBLIC_AEM_HOST });
+export default new AemHeadlessClient({
+  serviceURL: process.env.NEXT_PUBLIC_AEM_HOST,
+  proxyURL: process.env.NEXT_PUBLIC_AEM_PROXY_URL,
+});

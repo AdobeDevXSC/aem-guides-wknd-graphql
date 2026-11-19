@@ -11,11 +11,13 @@
  *
  */
 
-import Layout from '../../components/layout';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import Layout from '../components/layout';
 import Head from 'next/head';
-import aemHeadlessClient from '../../lib/aem-headless-client';
+import aemHeadlessClient from '../lib/aem-headless-client';
 
-export default function Adventure({ adventure }) {
+function AdventureView({ adventure }) {
   const {
     title,
     activity,
@@ -112,33 +114,30 @@ export default function Adventure({ adventure }) {
   );
 }
 
-export async function getStaticPaths() {
-  const slugs = await aemHeadlessClient.getAdventureSlugs();
+export default function Adventure() {
+  const { isReady, query } = useRouter();
+  const slug = Array.isArray(query.slug) ? query.slug[0] : query.slug;
+  const [adventure, setAdventure] = useState(null);
+  const [error, setError] = useState(null);
 
-  return {
-    paths: slugs,
-    fallback: false,
-  };
-}
+  // Fetched in the browser so content changes (and new adventures) show up without a rebuild
+  useEffect(() => {
+    if (!isReady) return;
+    if (!slug) { setError('No adventure selected.'); return; }
+    aemHeadlessClient
+      .getAdventuresBySlug(slug, { imageWidth: 1600, imageQuality: 95 })
+      .then((res) => {
+        const item = res?.data?.adventureList?.items?.[0];
+        item ? setAdventure(item) : setError(`Cannot find adventure "${slug}".`);
+      })
+      .catch((e) => setError(e.message));
+  }, [isReady, slug]);
 
-export async function getStaticProps({ params }) {
-  const slug = params.slug[0];
-  const queryVariables = {
-    imageWidth: 1600,
-    imageQuality: 95
-  }
-  const res = await aemHeadlessClient.getAdventuresBySlug(slug, queryVariables);
-  const adventure = res?.data?.adventureList?.items[0];
-
-  if (!adventure) {
-    return {
-      notFound: true,
-    }
-  } 
-
-  return {
-    props: {
-      adventure
-    }
-  };
+  if (adventure) return <AdventureView adventure={adventure} />;
+  return (
+    <Layout adventure>
+      <Head><title>Adventure</title></Head>
+      <p className="max-w-2xl mx-auto py-16 px-4 text-gray-500">{error || 'Loading adventure…'}</p>
+    </Layout>
+  );
 }

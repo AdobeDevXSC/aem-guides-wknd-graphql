@@ -70,6 +70,7 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}/next-js
           NEXT_PUBLIC_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/next-js
           NEXT_PUBLIC_AEM_HOST: ${{ vars.NEXT_PUBLIC_AEM_HOST }}
+          NEXT_PUBLIC_AEM_PROXY_URL: ${{ vars.AEM_PROXY_URL }}
           NEXT_PUBLIC_AEM_GRAPHQL_ENDPOINT: ${{ vars.NEXT_PUBLIC_AEM_GRAPHQL_ENDPOINT }}
 
       - name: Install React app dependencies
