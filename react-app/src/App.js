@@ -7,13 +7,16 @@ accordance with the terms of the Adobe license agreement accompanying
 it.
 */
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter, HashRouter, Routes, Route } from "react-router-dom";
 import ScrollToTop from "./utils/scrollToTop";
 import logo from "./images/wknd-logo-dk.svg";
 import Home from "./components/Home";
 import AdventureDetail from "./components/AdventureDetail";
 import { Link } from "react-router-dom";
 import "./App.scss";
+
+// GitHub Pages cannot rewrite deep links to index.html, so the Pages build uses hash routing
+const Router = process.env.REACT_APP_USE_HASH_ROUTER === "true" ? HashRouter : BrowserRouter;
 
 function App() {
   return (
