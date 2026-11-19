@@ -35,7 +35,7 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-full">
       <Head>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href={(process.env.NEXT_PUBLIC_BASE_PATH || "") + "/favicon.ico"} />
         <meta
           name="description"
           content="AEM WKND built in Next.js"
@@ -68,7 +68,7 @@ export default function Layout({ children }) {
 
                 <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
                   <div className="flex-shrink-0 flex items-center">
-                    <a href='/'>
+                    <a href={(process.env.NEXT_PUBLIC_BASE_PATH || '') + '/'}>
                       <img
                         className="block lg:hidden h-8 w-auto"
                         src={process.env.NEXT_PUBLIC_URL + "/wknd-logo-dk.svg"}

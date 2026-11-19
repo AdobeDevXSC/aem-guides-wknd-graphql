@@ -54,7 +54,7 @@ export default function Adventures({ adventures }) {
   );
 }
 
-export async function getServerSideProps() {
+export async function getStaticProps() {
   const queryVariables = {
     imageFormat: 'PNG',
     imageWidth: 262,
