@@ -117,7 +117,7 @@ export async function getStaticPaths() {
 
   return {
     paths: slugs,
-    fallback: 'blocking',
+    fallback: false,
   };
 }
 
@@ -133,14 +133,12 @@ export async function getStaticProps({ params }) {
   if (!adventure) {
     return {
       notFound: true,
-      revalidate: 60,
     }
   } 
 
   return {
     props: {
       adventure
-    },
-    revalidate: 60,
+    }
   };
 }

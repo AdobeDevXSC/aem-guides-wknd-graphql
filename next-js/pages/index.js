@@ -67,15 +67,12 @@ export async function getStaticProps() {
   if (!adventures.length) {
     return {
       notFound: true,
-      revalidate: 60,
     }
   }
 
   return {
     props: {
       adventures
-    },
-    // Re-fetch from AEM at most once a minute so content changes show up without a redeploy
-    revalidate: 60,
+    }
   };
 }

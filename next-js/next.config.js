@@ -19,6 +19,8 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 module.exports = {
     reactStrictMode: true,
     basePath,
+    images: { unoptimized: true },
+    trailingSlash: true,
     webpack(config) {
         config.plugins.push(new WebpackAssetsManifest({
             output: '../public/asset-manifest.json',
