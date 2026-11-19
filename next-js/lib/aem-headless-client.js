@@ -20,6 +20,14 @@ import AEMHeadless from '@adobe/aem-headless-client-js';
  * - getters that invoke AEM GraphQL persisted queries
  * - helper functions for resources, such as images, that need to be served from AEM
  */
+function withProxyParams(url, aemHost, token) {
+  const params = new URLSearchParams();
+  if (aemHost) params.set('aemHost', aemHost.replace(/\/+$/, ''));
+  if (token) params.set('aemToken', token);
+  const qs = params.toString();
+  return qs ? `${url}${String(url).includes('?') ? '&' : '?'}${qs}` : url;
+}
+
 class AemHeadlessClient {
   aemHost; 
 
@@ -37,10 +45,9 @@ class AemHeadlessClient {
       serviceURL: proxyURL || serviceURL,
       endpoint: 'The endpoint is not used as it only applies to client-side GraphQL queries which are not Adobe best practices.',
       auth: this._getAuth(),
-      // through the proxy the app tells it which AEM host to query (the token, if any, goes in Authorization)
-      headers: proxyURL && serviceURL ? { 'X-AEM-Host': serviceURL.replace(/\/+$/, '') } : undefined,
       // wrapped so the browser's fetch keeps its window binding
-      fetch: (...args) => fetch(...args)
+      // through the proxy, every request carries the AEM host and optional token as GET parameters
+      fetch: (url, options) => fetch(proxyURL ? withProxyParams(url, serviceURL, process.env.NEXT_PUBLIC_AEM_AUTH_TOKEN) : url, options)
     });
   }
 
@@ -55,8 +62,6 @@ class AemHeadlessClient {
       auth = [ process.env.AEM_AUTH_USER, process.env.AEM_AUTH_PASSWORD];
     } else if (process.env.AEM_AUTH_METHOD === 'dev-token') {
       auth = process.env.AEM_AUTH_DEV_TOKEN;
-    } else if (process.env.NEXT_PUBLIC_AEM_AUTH_TOKEN) {
-      auth = process.env.NEXT_PUBLIC_AEM_AUTH_TOKEN;
     }
     
     return auth;

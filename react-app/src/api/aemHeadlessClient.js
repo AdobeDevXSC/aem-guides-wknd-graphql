@@ -36,8 +36,6 @@ const setAuthorization = () => {
     return [REACT_APP_BASIC_AUTH_USER, REACT_APP_BASIC_AUTH_PASS];
   } else if (REACT_APP_AUTH_METHOD === "dev-token") {
     return REACT_APP_DEV_TOKEN;
-  } else if (process.env.REACT_APP_AUTH_TOKEN) {
-    return process.env.REACT_APP_AUTH_TOKEN;
   } else {
     // no authentication set
     return;
@@ -48,8 +46,15 @@ const setAuthorization = () => {
 const aemHeadlessClient = new AEMHeadless({
   serviceURL: serviceURL,
   auth: setAuthorization(),
-  // through the proxy the app tells it which AEM host to query (the token, if any, goes in Authorization)
-  headers: REACT_APP_PROXY_URL && REACT_APP_HOST_URI ? { "X-AEM-Host": REACT_APP_HOST_URI.replace(/\/+$/, "") } : undefined,
+  // through the proxy, every request carries the AEM host and optional token as GET parameters
+  fetch: (url, options) => {
+    if (!REACT_APP_PROXY_URL) return fetch(url, options);
+    const params = new URLSearchParams();
+    if (REACT_APP_HOST_URI) params.set("aemHost", REACT_APP_HOST_URI.replace(/\/+$/, ""));
+    if (process.env.REACT_APP_AUTH_TOKEN) params.set("aemToken", process.env.REACT_APP_AUTH_TOKEN);
+    const qs = params.toString();
+    return fetch(qs ? `${url}${String(url).includes("?") ? "&" : "?"}${qs}` : url, options);
+  },
 });
 
 // Prefix URLs with AEM Host
