@@ -37,6 +37,8 @@ class AemHeadlessClient {
       serviceURL: proxyURL || serviceURL,
       endpoint: 'The endpoint is not used as it only applies to client-side GraphQL queries which are not Adobe best practices.',
       auth: this._getAuth(),
+      // through the proxy the app tells it which AEM host to query (the token, if any, goes in Authorization)
+      headers: proxyURL && serviceURL ? { 'X-AEM-Host': serviceURL.replace(/\/+$/, '') } : undefined,
       // wrapped so the browser's fetch keeps its window binding
       fetch: (...args) => fetch(...args)
     });
@@ -53,6 +55,8 @@ class AemHeadlessClient {
       auth = [ process.env.AEM_AUTH_USER, process.env.AEM_AUTH_PASSWORD];
     } else if (process.env.AEM_AUTH_METHOD === 'dev-token') {
       auth = process.env.AEM_AUTH_DEV_TOKEN;
+    } else if (process.env.NEXT_PUBLIC_AEM_AUTH_TOKEN) {
+      auth = process.env.NEXT_PUBLIC_AEM_AUTH_TOKEN;
     }
     
     return auth;
