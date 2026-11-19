@@ -43,6 +43,7 @@ export default function Adventures() {
             <div className="mt-6 grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
               {(adventures || []).map(
                 ({
+                  _path,
                   slug,
                   title,
                   price,
@@ -52,6 +53,7 @@ export default function Adventures() {
                   return (
                     <AdventureCard
                       key={index}
+                      path={_path}
                       slug={slug}
                       title={title}
                       price={price}

@@ -47,6 +47,8 @@ export default function Layout({ children }) {
         <meta name="og:title" content={siteTitle} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta property="cq:pagemodel_router" content="disabled" />
+        <meta name="urn:adobe:aue:system:aemconnection" content={`aem:${process.env.NEXT_PUBLIC_UE_AEM_AUTHOR_URI || ''}`} />
+        <script src="https://universal-editor-service.adobe.io/cors.js" async></script>
       </Head>
 
       <Disclosure as="nav" className="bg-gray-100">

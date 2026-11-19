@@ -13,23 +13,26 @@
 
 import Link from 'next/link'
 
-export default function AdventureCard({ slug, title, price, duration, imageSrc }) {
+export default function AdventureCard({ path, slug, title, price, duration, imageSrc }) {
   return (
-    <div key={slug} className="group relative">
+    <div key={slug} className="group relative"
+      data-aue-resource={`urn:aemconnection:${path}/jcr:content/data/master`}
+      data-aue-type="reference" data-aue-label={title}>
       <div className="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-60 lg:aspect-none">
         <img
           src={imageSrc}
           alt={title}
           className="w-full h-full object-center object-cover lg:w-full lg:h-full"
+          data-aue-prop="primaryImage" data-aue-type="media"
         />
       </div>
       <div className="mt-4 flex justify-between">
-        <p className="mt-1 text-sm text-gray-500">{duration}</p>
-        <p className="text-sm font-medium text-gray-900">${price} USD</p>
+        <p className="mt-1 text-sm text-gray-500" data-aue-prop="tripLength" data-aue-type="text">{duration}</p>
+        <p className="text-sm font-medium text-gray-900" data-aue-prop="price" data-aue-type="text">${price} USD</p>
       </div>
       <h3 className="font-semibold text-gray-700">
         <Link href={`/adventure?slug=${encodeURIComponent(slug)}`} legacyBehavior>
-          <div>
+          <div data-aue-prop="title" data-aue-type="text">
             <span aria-hidden="true" className="absolute inset-0" />
             {title}
           </div>
