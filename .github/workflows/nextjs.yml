@@ -78,11 +78,8 @@ jobs:
 
       - name: Build React app
         working-directory: ./react-app
-        run: |
-          node scripts/fetch-aem-data.js
-          npm run build
+        run: npm run build
         env:
-          REACT_APP_STATIC_DATA: "true"
           PUBLIC_URL: /${{ github.event.repository.name }}/react-app
           REACT_APP_USE_HASH_ROUTER: "true"
           REACT_APP_USE_PROXY: "false"
