@@ -60,7 +60,8 @@ const aemHeadlessClient = new AEMHeadless({
 // Prefix URLs with AEM Host
 export function addAemHost(url) {  
   if (url.startsWith("/")) {
-    return new URL(url, REACT_APP_HOST_URI).toString();
+    // images always come from Publish, even when the AEM host is Author
+    return new URL(url, (REACT_APP_HOST_URI || "").replace("://author-", "://publish-")).toString();
   }
   return url;
 }

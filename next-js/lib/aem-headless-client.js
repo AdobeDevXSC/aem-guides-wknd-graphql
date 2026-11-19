@@ -75,7 +75,9 @@ class AemHeadlessClient {
    */
   serveFromAem(url) {
     if (url.startsWith("/")) {
-      return new URL(url, this.aemHost).toString();
+      // images always come from Publish, even when the AEM host is Author
+      const publishHost = (this.aemHost || '').replace('://author-', '://publish-');
+      return new URL(url, publishHost).toString();
     }
     return url;  }
 
