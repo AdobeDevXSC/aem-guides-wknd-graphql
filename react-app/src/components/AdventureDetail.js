@@ -41,7 +41,8 @@ function AdventureDetail() {
 
 }
 
-function AdventureDetailRender({ title,
+function AdventureDetailRender({ _path,
+    title,
     primaryImage,
     activity,
     adventureType,
@@ -53,35 +54,36 @@ function AdventureDetailRender({ title,
     itinerary,
     references }) {
 
-    return (<>
-        <h1 className="adventure-detail-title">{title}</h1>
+    return (<div data-aue-resource={`urn:aemconnection:${_path}/jcr:content/data/master`}
+        data-aue-type="reference" data-aue-label={title}>
+        <h1 className="adventure-detail-title" data-aue-prop="title" data-aue-type="text">{title}</h1>
         <div className="adventure-detail-info">
             <div className="adventure-detail-info-label">Activity</div>
-            <div className="adventure-detail-info-description">{activity}</div>
+            <div className="adventure-detail-info-description" data-aue-prop="activity" data-aue-type="text">{activity}</div>
             <div className="adventure-detail-info-label">Type</div>
-            <div className="adventure-detail-info-description">{adventureType}</div>
+            <div className="adventure-detail-info-description" data-aue-prop="adventureType" data-aue-type="text">{adventureType}</div>
             <div className="adventure-detail-info-label">Trip Length</div>
-            <div className="adventure-detail-info-description">{tripLength}</div>
+            <div className="adventure-detail-info-description" data-aue-prop="tripLength" data-aue-type="text">{tripLength}</div>
             <div className="adventure-detail-info-label">Group Size</div>
-            <div className="adventure-detail-info-description">{groupSize}</div>
+            <div className="adventure-detail-info-description" data-aue-prop="groupSize" data-aue-type="text">{groupSize}</div>
             <div className="adventure-detail-info-label">Difficulty</div>
-            <div className="adventure-detail-info-description">{difficulty}</div>
+            <div className="adventure-detail-info-description" data-aue-prop="difficulty" data-aue-type="text">{difficulty}</div>
             <div className="adventure-detail-info-label">Price</div>
-            <div className="adventure-detail-info-description">
+            <div className="adventure-detail-info-description" data-aue-prop="price" data-aue-type="text">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price)}
             </div>
         </div>
         <div className="adventure-detail-content">
             <img className="adventure-detail-primaryimage"
-                src={imageUrl(primaryImage)} alt={title} />
-            <div>{mapJsonRichText(description.json, customRenderOptions(references))}</div>
+                src={imageUrl(primaryImage)} alt={title} data-aue-prop="primaryImage" data-aue-type="media" />
+            <div data-aue-prop="description" data-aue-type="richtext">{mapJsonRichText(description.json, customRenderOptions(references))}</div>
             <h2>Itinerary</h2>
             <hr />
 
             {/* Render the itinerary without any custom render options (just use defaults) */}
-            <div className="adventure-detail-itinerary">{mapJsonRichText(itinerary.json)}</div>
+            <div className="adventure-detail-itinerary" data-aue-prop="itinerary" data-aue-type="richtext">{mapJsonRichText(itinerary.json)}</div>
         </div>
-    </>
+    </div>
     );
 }
 

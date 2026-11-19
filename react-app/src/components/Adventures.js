@@ -27,7 +27,7 @@ function Adventures({ adventureActivity }) {
 
     return (
         <div className="adventures">
-            <ul className="adventure-items">
+            <ul className="adventure-items" data-aue-prop="adventures" data-aue-type="container">
                 {adventures.map((adventure, index) => {
                     return <AdventureListItem key={index} {...adventure} />
                 })}
@@ -37,25 +37,26 @@ function Adventures({ adventureActivity }) {
 }
 
 // Render individual Adventure item
-function AdventureListItem({ title, slug, primaryImage, tripLength, price }) {
+function AdventureListItem({ _path, title, slug, primaryImage, tripLength, price }) {
     // Must have title, path, and image
     if (!title || !title || !primaryImage) {
         return null;
     }
 
     return (
-        <li className="adventure-item">
+        <li className="adventure-item" data-aue-resource={`urn:aemconnection:${_path}/jcr:content/data/master`}
+            data-aue-type="reference" data-aue-label={title}>
             <Link to={`/adventure/${slug}`}>
                 <img className="adventure-item-image" src={imageUrl(primaryImage)}
-                    alt={title} />
+                    alt={title} data-aue-prop="primaryImage" data-aue-type="media" />
             </Link>
             <div className="adventure-item-length-price">
-                <div className="adventure-item-length">{tripLength}</div>
-                <div className="adventure-item-price">
+                <div className="adventure-item-length" data-aue-prop="tripLength" data-aue-type="text">{tripLength}</div>
+                <div className="adventure-item-price" data-aue-prop="price" data-aue-type="text">
                     {new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(price)}
                 </div>
             </div>
-            <div className="adventure-item-title">{title}</div>
+            <div className="adventure-item-title" data-aue-prop="title" data-aue-type="text">{title}</div>
         </li>
     );
 }
