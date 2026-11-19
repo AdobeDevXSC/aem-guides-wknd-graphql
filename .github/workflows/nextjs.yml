@@ -83,6 +83,7 @@ jobs:
           PUBLIC_URL: /${{ github.event.repository.name }}/react-app
           REACT_APP_USE_HASH_ROUTER: "true"
           REACT_APP_USE_PROXY: "false"
+          REACT_APP_PROXY_URL: ${{ vars.AEM_PROXY_URL }}
           REACT_APP_HOST_URI: ${{ vars.NEXT_PUBLIC_AEM_HOST }}
           REACT_APP_GRAPHQL_ENDPOINT: ${{ vars.NEXT_PUBLIC_AEM_GRAPHQL_ENDPOINT }}
 

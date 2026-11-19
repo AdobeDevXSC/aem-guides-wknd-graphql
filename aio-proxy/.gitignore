@@ -1,0 +1,4 @@
+.env
+.aio
+.aws.tmp.creds
+node_modules
