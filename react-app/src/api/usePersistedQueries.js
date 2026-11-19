@@ -11,7 +11,33 @@ import { useEffect, useState } from "react";
 import aemHeadlessClient from "./aemHeadlessClient";
 
 // environment variable for configuring the headless client
-const { DISABLE_CACHE, REACT_APP_GRAPHQL_ENDPOINT} = process.env;
+const { DISABLE_CACHE, REACT_APP_GRAPHQL_ENDPOINT, REACT_APP_STATIC_DATA: STATIC_DATA, PUBLIC_URL } = process.env;
+
+async function getJson(file) {
+  const res = await fetch(`${PUBLIC_URL || ""}/data/${file}`);
+  if (!res.ok) throw new Error(`${file}: HTTP ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Serves persisted query results from the build-time JSON snapshot.
+ */
+async function fetchStaticData(persistedQueryName, queryParameters) {
+  try {
+    if (persistedQueryName.endsWith("/adventure-by-slug")) {
+      return { data: await getJson(`adventure/${encodeURIComponent(queryParameters.slug)}.json`) };
+    }
+    const data = await getJson("adventures-all.json");
+    if (persistedQueryName.endsWith("/adventures-by-activity")) {
+      const items = data.adventureList.items.filter((a) => a.activity === queryParameters.activity);
+      return { data: { adventureList: { items } } };
+    }
+    return { data };
+  } catch (e) {
+    console.error(e);
+    return { err: e.message };
+  }
+}
 
 /**
  * This file contains the React useEffect custom hooks that:
@@ -41,6 +67,12 @@ async function fetchPersistedQuery(persistedQueryName, queryParameters) {
       queryParameters = {};
     }
     queryParameters.timestamp = new Date().getTime();
+  }
+
+  // Static hosting (GitHub Pages): AEM Publish sends no CORS headers, so read the
+  // JSON snapshot produced at build time by scripts/fetch-aem-data.js instead.
+  if (STATIC_DATA === "true") {
+    return fetchStaticData(persistedQueryName, queryParameters);
   }
 
   try {
