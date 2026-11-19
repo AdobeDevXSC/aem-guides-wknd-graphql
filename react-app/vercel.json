@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/graphql/:path*", "destination": "https://publish-p239953-e2394320.adobeaemcloud.com/graphql/:path*" },
+    { "source": "/content/:path*", "destination": "https://publish-p239953-e2394320.adobeaemcloud.com/content/:path*" },
+    { "source": "/((?!static/).*)", "destination": "/index.html" }
+  ]
+}
