@@ -57,12 +57,9 @@ export function addAemHost(url) {
 }
 
 // Picks the image URL for an AEM image reference.
-// Author uses the asset _path; Publish prefers the Dynamic Media _dynamicUrl (resized, WebP).
+// Prefers the Dynamic Media _dynamicUrl (resized, WebP), falling back to _path.
 export function imageUrl(image) {
-  const isAuthor = /^https?:\/\/author-/.test(REACT_APP_HOST_URI || "");
-  const url = isAuthor
-    ? image?._path || image?._dynamicUrl
-    : image?._dynamicUrl || image?._path;
+  const url = image?._dynamicUrl || image?._path;
   return url ? addAemHost(url) : undefined;
 }
 
