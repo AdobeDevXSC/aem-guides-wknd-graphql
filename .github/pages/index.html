@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
 <title>WKND Headless Demos</title>
 <!-- Not editable content: the Universal Editor library is loaded only so the editor connects instead of timing out -->
 <meta name="urn:adobe:aue:system:aemconnection" content="aem:" />
@@ -78,7 +79,7 @@
         <div>
           <label for="auth-token">Temporary access token</label>
           <input id="auth-token" name="authToken" type="password" autocomplete="off" spellcheck="false" required>
-          <span class="hint">Sent as a Bearer header, never in the URL. A proxy must forward Authorization.</span>
+          <span class="hint">Sent to AEM as a Bearer header. Demo connection links are imported into this tab and removed from the app URL.</span>
         </div>
         <div>
           <label for="graphql-endpoint">GraphQL namespace</label>
@@ -91,7 +92,7 @@
           <span class="hint">The demo proxy handles browser requests to AEM. This URL is read-only.</span>
         </div>
       </div>
-      <p class="hint">Settings survive reloads in this tab, not across separate tabs. Browser storage is not a secret vault: use only short-lived demo tokens.</p>
+      <p class="hint">Settings survive reloads in this tab, not across separate tabs. Use only short-lived demo tokens. Connection URLs can expose tokens in history or logs even after the app removes them.</p>
       <div class="actions">
         <button type="submit">Save settings</button>
         <button type="button" class="secondary" id="clear-settings">Clear settings</button>
@@ -134,8 +135,11 @@
     }
 
     try {
+      const fromUrl = new URLSearchParams(location.search).has("imsToken");
       populate(api.read(rootPath) || defaults);
-      showStatus("Save your connection, then open either app above in this tab.");
+      showStatus(fromUrl
+        ? "Connection imported for both apps in this tab. Open an app above."
+        : "Save your connection, then open either app above in this tab.");
     } catch (error) {
       populate(defaults);
       showStatus(error.message, true);

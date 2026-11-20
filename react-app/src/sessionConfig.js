@@ -55,6 +55,8 @@
 
   function read(rootPath) {
     if (typeof window === "undefined") return null;
+    const imported = importFromUrl(rootPath);
+    if (imported) return imported;
     let saved;
     try {
       saved = window.sessionStorage.getItem(storageKey(rootPath));
@@ -69,6 +71,32 @@
       throw new Error("Invalid saved AEM settings. Clear settings on the demo landing page.");
     }
     return validate(config);
+  }
+
+  function importFromUrl(rootPath) {
+    const url = new URL(window.location.href);
+    const hosts = url.searchParams.getAll("aemHost");
+    const tokens = url.searchParams.getAll("imsToken");
+    if (!hosts.length && !tokens.length) return null;
+
+    url.searchParams.delete("aemHost");
+    url.searchParams.delete("imsToken");
+    try {
+      window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+    } catch {
+      throw new Error("Could not remove connection parameters from the URL. Close this tab and reopen without a token in the URL.");
+    }
+
+    if (hosts.length !== 1 || tokens.length !== 1 || !hosts[0].trim() || !tokens[0].trim()) {
+      throw new Error("The connection URL requires exactly one aemHost and one imsToken.");
+    }
+    const aemHost = hosts[0].trim();
+    return save({
+      aemHost: /^https?:\/\//i.test(aemHost) ? aemHost : "https://" + aemHost,
+      authToken: tokens[0],
+      proxyURL: defaultProxyURL,
+      graphqlEndpoint: "wknd-shared",
+    }, rootPath);
   }
 
   function requireConfig(rootPath) {

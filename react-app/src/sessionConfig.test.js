@@ -10,6 +10,12 @@ const rootPath = "/forked-repo/";
 
 beforeEach(() => {
   sessionStorage.clear();
+  window.history.replaceState(null, "", "/");
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
+  window.history.replaceState(null, "", "/");
 });
 
 test("saved settings override all defaults and survive subsequent reads", () => {
@@ -76,4 +82,70 @@ test("blocked browser storage reports an actionable error", () => {
   } finally {
     getItem.mockRestore();
   }
+});
+
+test.each([
+  "/forked-repo/",
+  "/forked-repo/react-app/",
+  "/forked-repo/next-js/adventure/?slug=camping#details",
+])("URL connections populate the shared session and scrub only connection parameters at %s", (path) => {
+  const url = new URL(path, window.location.origin);
+  url.searchParams.set("aemHost", "author-demo.adobeaemcloud.com");
+  url.searchParams.set("imsToken", "demo+token/with&reserved=characters");
+  window.history.replaceState({ keep: true }, "", url);
+  const imported = sessionConfig.read(rootPath);
+  expect(imported).toEqual({
+    aemHost: "https://author-demo.adobeaemcloud.com",
+    authToken: "demo+token/with&reserved=characters",
+    proxyURL: sessionConfig.defaultProxyURL,
+    graphqlEndpoint: "wknd-shared",
+  });
+  expect(window.location.pathname + window.location.search + window.location.hash).toBe(path);
+  expect(window.history.state).toEqual({ keep: true });
+  expect(sessionConfig.read(rootPath)).toEqual(imported);
+});
+
+test("a new complete URL connection replaces an existing saved connection", () => {
+  sessionConfig.save(config, rootPath);
+  const params = new URLSearchParams({ aemHost: "https://author-new.example/", imsToken: "new-demo-token" });
+  window.history.replaceState(null, "", rootPath + "?" + params);
+  expect(sessionConfig.requireConfig(rootPath)).toEqual({
+    aemHost: "https://author-new.example",
+    authToken: "new-demo-token",
+    proxyURL: sessionConfig.defaultProxyURL,
+    graphqlEndpoint: "wknd-shared",
+  });
+});
+
+test.each([
+  "aemHost=author-demo.example",
+  "imsToken=demo-token",
+  "aemHost=author-demo.example&imsToken=",
+  "aemHost=author-demo.example&imsToken=one&imsToken=two",
+  "aemHost=author-demo.example&imsToken=demo-token%0Aanother-line",
+  "aemHost=https%3A%2F%2Fauthor.example%2Fcontent&imsToken=demo-token",
+])("invalid URL connections are scrubbed and reported without overwriting settings: %s", (query) => {
+  sessionConfig.save(config, rootPath);
+  window.history.replaceState(null, "", rootPath + "?keep=yes&" + query + "#details");
+  expect(() => sessionConfig.read(rootPath)).toThrow();
+  expect(window.location.search + window.location.hash).toBe("?keep=yes#details");
+  expect(sessionConfig.read(rootPath)).toEqual(config);
+});
+
+test("a storage failure is reported after scrubbing the token from the URL", () => {
+  window.history.replaceState(null, "", rootPath + "?aemHost=author-demo.example&imsToken=demo-token");
+  jest.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+    throw new DOMException("Blocked", "SecurityError");
+  });
+  expect(() => sessionConfig.read(rootPath)).toThrow(/Could not save settings/);
+  expect(window.location.search).toBe("");
+});
+
+test("a URL cleanup failure is reported without importing the connection", () => {
+  window.history.replaceState(null, "", rootPath + "?aemHost=author-demo.example&imsToken=demo-token");
+  jest.spyOn(window.history, "replaceState").mockImplementation(() => {
+    throw new DOMException("Blocked", "SecurityError");
+  });
+  expect(() => sessionConfig.read(rootPath)).toThrow(/Could not remove connection parameters/);
+  expect(sessionStorage.getItem(sessionConfig.storageKey(rootPath))).toBeNull();
 });
