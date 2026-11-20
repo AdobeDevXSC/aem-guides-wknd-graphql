@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import sessionConfig from "../sessionConfig";
 import AEMHeadless from "@adobe/aem-headless-client-js";
 import { useAdventuresByActivity, useAdventureBySlug } from "./usePersistedQueries";
@@ -67,10 +67,40 @@ test("list queries use the session host, proxy, token, and namespace", async () 
 
 test("detail queries use the session namespace", async () => {
   const adventure = { slug: "demo" };
-  runPersistedQuery.mockResolvedValue({ data: { adventureList: { items: [adventure] } } });
+  const references = [{ __typename: "AdventureModel", slug: "related" }];
+  runPersistedQuery.mockResolvedValue({ data: { adventureList: { items: [adventure], _references: references } } });
   const { result } = renderHook(() => useAdventureBySlug("demo", params));
   await waitFor(() => expect(result.current.adventure).toEqual(adventure));
+  expect(result.current.references).toEqual(references);
   expect(runPersistedQuery).toHaveBeenCalledWith("session-namespace/adventure-by-slug", { slug: "demo" });
+});
+
+test("detail navigation clears previous content and ignores outdated responses", async () => {
+  const adventure = { slug: "demo" };
+  const references = [{ __typename: "AdventureModel", slug: "related" }];
+  runPersistedQuery.mockResolvedValueOnce({ data: { adventureList: { items: [adventure], _references: references } } });
+  const { result, rerender } = renderHook(
+    ({ slug }) => useAdventureBySlug(slug, params),
+    { initialProps: { slug: "demo" } }
+  );
+  await waitFor(() => expect(result.current.references).toEqual(references));
+
+  let resolveOutdated;
+  runPersistedQuery.mockReturnValueOnce(new Promise(resolve => { resolveOutdated = resolve; }));
+  rerender({ slug: "outdated" });
+  expect(result.current.adventure).toBeNull();
+  expect(result.current.references).toBeNull();
+
+  const related = { slug: "related" };
+  runPersistedQuery.mockResolvedValueOnce({ data: { adventureList: { items: [related], _references: [] } } });
+  rerender({ slug: "related" });
+  await waitFor(() => expect(result.current.adventure).toEqual(related));
+  await act(async () => {
+    resolveOutdated({ data: { adventureList: { items: [] } } });
+  });
+  expect(result.current.adventure).toEqual(related);
+  expect(result.current.references).toEqual([]);
+  expect(result.current.error).toBeNull();
 });
 
 test("invalid stored configuration reaches the error state used by the UI", async () => {

@@ -29,6 +29,8 @@ Continual               | 6.5.13+ |  [WKND Shared 2.0+](https://github.com/adobe
 
 ## Notes
 
+Adventure detail pages show a **Related adventures** section for `AdventureModel` entries in the `adventure-by-slug` response's `_references`, linking to each adventure and displaying its price when available. Each related card makes an additional `adventure-by-slug` request to load its `primaryImage._path`, served from AEM Publish. Cards remain usable while images load; missing images and request errors are shown on the card. No AEM query changes are required. The section is hidden when no other adventures with slugs are referenced.
+
 For a local combined preview, serve the landing page, shared settings script, and built apps on the same origin, with paths matching the build. Separate development-server ports do not share session settings. The Pages workflow derives the static base path from the repository name; this is a hosting setting, not an AEM connection setting.
 
 GraphQL requests always go through the saved demo proxy. Tokens are sent as Bearer headers, not URL parameters. The proxy must allow CORS requests from the demo origin and forward `Authorization` to AEM.

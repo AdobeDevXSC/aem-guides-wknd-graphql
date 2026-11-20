@@ -110,6 +110,11 @@ export function useAdventureBySlug(slugName, params) {
   const [errors, setErrors] = useState(null);
 
   useEffect(() => {
+    let cancelled = false;
+    setAdventure(null);
+    setReferences(null);
+    setErrors(null);
+
     async function fetchData() {
 
       let response;
@@ -125,6 +130,8 @@ export function useAdventureBySlug(slugName, params) {
         "adventure-by-slug",
         queryVariables
       );
+
+      if (cancelled) return;
 
       if (response.err) {
         // Capture errors from the HTTP request
@@ -143,6 +150,7 @@ export function useAdventureBySlug(slugName, params) {
     // Call the internal fetchData() as per React best practices
     fetchData();
 
+    return () => { cancelled = true; };
   }, [slugName, params]);
 
   return { adventure, references, error: errors };

@@ -54,6 +54,10 @@ function AdventureDetailRender({ _path,
     itinerary,
     references }) {
 
+    const relatedAdventures = (references || []).filter(reference =>
+        reference.__typename === 'AdventureModel' && reference.slug && reference._path !== _path
+    );
+
     return (<div data-aue-resource={`urn:aemconnection:${_path}/jcr:content/data/master`}
         data-aue-type="reference" data-aue-label={title}>
         <h1 className="adventure-detail-title" data-aue-prop="title" data-aue-type="text">{title}</h1>
@@ -83,7 +87,44 @@ function AdventureDetailRender({ _path,
             {/* Render the itinerary without any custom render options (just use defaults) */}
             <div className="adventure-detail-itinerary" data-aue-prop="itinerary" data-aue-type="richtext">{mapJsonRichText(itinerary.json)}</div>
         </div>
+        {relatedAdventures.length > 0 && (
+            <section className="adventure-detail-related" aria-labelledby="related-adventures-title">
+                <h2 id="related-adventures-title">Related adventures</h2>
+                <ul>
+                    {relatedAdventures.map(related => (
+                        <RelatedAdventure key={related._path || related.slug} adventure={related} />
+                    ))}
+                </ul>
+            </section>
+        )}
     </div>
+    );
+}
+
+function RelatedAdventure({ adventure }) {
+    const queryParameters = useMemo(() => ({ format: 'JPG', preferWebp: true, width: 360 }), []);
+    const { adventure: details, error } = useAdventureBySlug(adventure.slug, queryParameters);
+    const src = imageUrl(details?.primaryImage);
+
+    return (
+        <li>
+            <Link className="adventure-detail-related-link" to={`/adventure/${encodeURIComponent(adventure.slug)}`} aria-label={adventure.title}>
+                <div className="adventure-detail-related-image">
+                    {src ? <img src={src} alt="" loading="lazy" /> : (
+                        <span>{error ? 'Image unavailable' : details ? 'No image available' : 'Loading image...'}</span>
+                    )}
+                </div>
+                <div className="adventure-detail-related-info">
+                    <span>{adventure.title}</span>
+                    {adventure.price != null && (
+                        <span>
+                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(adventure.price)}
+                        </span>
+                    )}
+                </div>
+            </Link>
+            {error && <p role="alert">Could not load image: {error}</p>}
+        </li>
     );
 }
 

@@ -35,6 +35,19 @@ Continual               | 6.5.13+ |  [WKND Shared 2.0+](https://github.com/adobe
 
 ## Notes
 
+Adventure detail pages show a **Related adventures** section for `AdventureModel` entries in the `adventure-by-slug` response's `_references`, linking to each adventure and displaying its price when available. Each related card makes an additional `adventure-by-slug` request to load its `primaryImage._path`, served from AEM Publish. Cards remain usable while images load; missing images and request errors are shown on the card. No AEM query changes are required. The section is hidden when no other adventures with slugs are referenced.
+
+Run the related-adventure UI and query tests for both apps using the React app's existing test runner (from `react-app`):
+
+```shell
+CI=true npm test -- --watch=false --runInBand \
+  --roots src ../next-js/lib \
+  --modulePaths "$PWD/node_modules" \
+  --moduleNameMapper '{"^react$":"<rootDir>/node_modules/react"}' \
+  --testMatch '**/?(*.)(spec|test).[jt]s?(x)' \
+  --testPathPattern='AdventureDetail.test.js|adventure.test.js|usePersistedQueries.test.js'
+```
+
 ### Browser Session Settings
 
 All AEM connection settings come from the browser's `sessionStorage`, not environment files or repository variables. Without saved settings, the app shows a configuration error rather than making AEM requests. Clearing settings requires configuring the connection again.

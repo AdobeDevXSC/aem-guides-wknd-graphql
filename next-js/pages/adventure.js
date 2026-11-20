@@ -15,9 +15,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/layout';
 import Head from 'next/head';
+import Link from 'next/link';
 import aemHeadlessClient from '../lib/aem-headless-client';
 
-function AdventureView({ adventure }) {
+function AdventureView({ adventure, references }) {
   const {
     _path,
     title,
@@ -31,6 +32,9 @@ function AdventureView({ adventure }) {
     description,
     itinerary,
   } = adventure;
+  const relatedAdventures = references.filter(reference =>
+    reference.__typename === 'AdventureModel' && reference.slug && reference._path !== _path
+  );
   return (
     <Layout adventure>
 
@@ -112,31 +116,81 @@ function AdventureView({ adventure }) {
           </div>
         </div>
 
+        {relatedAdventures.length > 0 && (
+          <section className="max-w-2xl mx-auto px-4 pb-16 sm:px-6 lg:max-w-7xl lg:px-8" aria-labelledby="related-adventures-title">
+            <h2 id="related-adventures-title" className="text-2xl font-bold text-gray-900">Related adventures</h2>
+            <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {relatedAdventures.map(related => (
+                <RelatedAdventure key={related._path || related.slug} adventure={related} />
+              ))}
+            </ul>
+          </section>
+        )}
       </article>
     </Layout>
   );
 }
 
-export default function Adventure() {
-  const { isReady, query } = useRouter();
-  const slug = Array.isArray(query.slug) ? query.slug[0] : query.slug;
+function RelatedAdventure({ adventure }) {
+  const { adventure: details, error } = useAdventureBySlug(adventure.slug);
+  const src = aemHeadlessClient.imageUrl(details?.primaryImage);
+
+  return (
+    <li className="py-4">
+      <Link href={`/adventure?slug=${encodeURIComponent(adventure.slug)}`} className="block font-semibold text-gray-700 hover:underline" aria-label={adventure.title}>
+        <div className="aspect-w-3 aspect-h-2 overflow-hidden rounded-md bg-gray-200">
+          {src ? <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" /> : (
+            <div className="flex items-center justify-center">
+              {error ? 'Image unavailable' : details ? 'No image available' : 'Loading image...'}
+            </div>
+          )}
+        </div>
+        <div className="mt-4 flex justify-between gap-4">
+          <span>{adventure.title}</span>
+          {adventure.price != null && <span className="text-gray-900">${adventure.price} USD</span>}
+        </div>
+      </Link>
+      {error && <p role="alert" className="mt-2 text-sm text-red-700">Could not load image: {error}</p>}
+    </li>
+  );
+}
+
+function useAdventureBySlug(slug, isReady = true) {
   const [adventure, setAdventure] = useState(null);
+  const [references, setReferences] = useState([]);
   const [error, setError] = useState(null);
 
   // Fetched in the browser so content changes (and new adventures) show up without a rebuild
   useEffect(() => {
     if (!isReady) return;
+    let cancelled = false;
+    setAdventure(null);
+    setReferences([]);
+    setError(null);
     if (!slug) { setError('No adventure selected.'); return; }
     aemHeadlessClient
       .getAdventuresBySlug(slug, { imageWidth: 1600, imageQuality: 95 })
       .then((res) => {
+        if (cancelled) return;
         const item = res?.data?.adventureList?.items?.[0];
+        setReferences(res?.data?.adventureList?._references || []);
         item ? setAdventure(item) : setError(`Cannot find adventure "${slug}".`);
       })
-      .catch((e) => setError(e.message));
+      .catch((e) => {
+        if (!cancelled) setError(e.message);
+      });
+    return () => { cancelled = true; };
   }, [isReady, slug]);
 
-  if (adventure) return <AdventureView adventure={adventure} />;
+  return { adventure, references, error };
+}
+
+export default function Adventure() {
+  const { isReady, query } = useRouter();
+  const slug = Array.isArray(query.slug) ? query.slug[0] : query.slug;
+  const { adventure, references, error } = useAdventureBySlug(slug, isReady);
+
+  if (adventure) return <AdventureView adventure={adventure} references={references} />;
   return (
     <Layout adventure>
       <Head><title>Adventure</title></Head>

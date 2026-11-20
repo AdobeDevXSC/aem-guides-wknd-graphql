@@ -72,6 +72,49 @@ it.
   font-size: $font-size-large;
 }
 
+.adventure-detail-related {
+  clear: both;
+  padding-top: 2em;
+
+  ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5em;
+    list-style: none;
+    padding: 0;
+  }
+
+  li {
+    padding: 1em 0;
+    border-bottom: 1px solid $gray-light;
+  }
+}
+
+.adventure-detail-related-link {
+  display: block;
+}
+
+.adventure-detail-related-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 3 / 2;
+  background: $gray-light;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.adventure-detail-related-info {
+  display: flex;
+  justify-content: space-between;
+  gap: 1em;
+  padding-top: 1em;
+}
+
 @media only screen and (max-width: $mobile-breakpoint) {
   .adventure-detail-info {
     display: none;
