@@ -33,6 +33,12 @@ Looking for a hands on guide? Checkout [Getting Started with AEM Headless - Grap
 
 * [AEM Headless Developer Portal](https://experienceleague.adobe.com/landing/experience-manager/headless/developer.html)
 
+## GitHub Pages deployment
+
+The [Pages workflow](./.github/workflows/nextjs.yml) builds and deploys the Next.js and React examples. Each build attempt uploads a uniquely named Pages artifact, and the deploy job uses the name supplied by that build. This avoids duplicate artifact errors on full workflow reruns and preserves the correct artifact when retrying only the deploy job.
+
+If an older workflow run fails with `Multiple artifacts named "github-pages"`, start a new run using **Run workflow** rather than rerunning that old run. Existing runs retain their original workflow definition.
+
 ## Contributing
 
 Contributions are welcomed! Read the [Contributing Guide](./.github/CONTRIBUTING.md) for more information.
