@@ -1,21 +1,13 @@
 # AEM Guides WKND - GraphQL
 
-This project includes example applications that highlight Adobe Experience Manager's GraphQL APIs.
+This project includes React and Next.js demos that highlight Adobe Experience Manager's GraphQL APIs.
 
-## Examples applications
+## Demo applications
 
 | Framework | Location | Description |
 |--------|-----------|-------------|
-| [Basic tutorial](./basic-tutorial) | [`/basic-tutorial`](./basic-tutorial) | A React application used with the [AEM Headless basic tutorial](https://experienceleague.adobe.com/docs/experience-manager-learn/getting-started-with-aem-headless/graphql/multi-step/overview.html) |
-| [Advanced tutorial](./advanced-tutorial/) | [`/advanced-tutorial`](./advanced-tutorial) | The WKND React application used with the [Advanced Concepts of AEM Headless](https://experienceleague.adobe.com/docs/experience-manager-learn/getting-started-with-aem-headless/graphql/advanced-tutorial/overview.html) |
-| [Preview tutorial](./preview-tutorial) | [`/preview-tutorial`](./preview-tutorial/) | Basis of React SPA used in the [Preview how-to](https://experienceleague.adobe.com/docs/experience-manager-learn/getting-started-with-aem-headless/how-to/preview.html) |
-| [Remote SPA tutorial](./remote-spa-tutorial)  | [`/remote-spa-tutorial`](./remote-spa-tutorial/) | Basis of Remote SPA used in the [AEM Remote SPA tutorial](https://experienceleague.adobe.com/docs/experience-manager-learn/getting-started-with-aem-headless/spa-editor/remote-spa/overview.html) |
 | [React example](./react-app) | [`/react-app`](./react-app) | A React application using the [AEM Headless Client for JavaScript](https://github.com/adobe/aem-headless-client-js) |
 | [Next.js example](./next-js) | [`/next-js`](./next-js) | A Next.js application using the [AEM Headless Client for JavaScript](https://github.com/adobe/aem-headless-client-js) |
-| [Android example](./android-app) | [`/android-app`](./android-app) | An Android application using the [AEM Headless Client for Java](https://github.com/adobe/aem-headless-client-java)
-| [iOS example](./ios-app) | [`/ios-app`](./ios-app) | A iOS application built with SwiftUI
-| [Web Component/pure JS example](./web-component) | [`/web-component`](./web-component) | A Web Component built using pure JavaScript
-| [Node.js (server-side) example](./server-to-server)  | [`/server-to-server`](./server-to-server/) | Node.js server-side app using [AEM Headless Client for Node.js](https://github.com/adobe/aem-headless-client-nodejs) |
 
 ## System Requirements
 
@@ -23,7 +15,7 @@ The sample applications in this repository are designed to connect to AEM enviro
 
  AEM as a Cloud Service | AEM 6.5 | Sample Content |
 ------------------------|---------|--------------------|
-Continual               | Not supported |  [WKND Site 3.0.0+](https://github.com/adobe/aem-guides-wknd/releases/latest) |
+Continual               | Not supported |  [WKND Shared 3.0.0+](https://github.com/adobe/aem-guides-wknd-shared/releases/latest) |
 
 ## Tutorial
 
@@ -38,6 +30,20 @@ Looking for a hands on guide? Checkout [Getting Started with AEM Headless - Grap
 The [Pages workflow](./.github/workflows/nextjs.yml) builds and deploys the Next.js and React examples. Each build attempt uploads a uniquely named Pages artifact, and the deploy job uses the name supplied by that build. This avoids duplicate artifact errors on full workflow reruns and preserves the correct artifact when retrying only the deploy job.
 
 If an older workflow run fails with `Multiple artifacts named "github-pages"`, start a new run using **Run workflow** rather than rerunning that old run. Existing runs retain their original workflow definition.
+
+### Browser session settings
+
+On the [demo landing page](./.github/pages/index.html), enter your AEM Author URL and required temporary access token. The proxy URL (`https://102588-424goldmagpie.adobeio-static.net/api/v1/web/aem/aem-cors-proxy`) and GraphQL namespace (`wknd-shared`) are read-only. Select **Save settings**, then open either app in the same tab. Both apps use that connection for queries, image hosts, and Universal Editor metadata without rebuilding.
+
+Settings are stored in `sessionStorage` under a repository-path-specific key. They survive reloads and same-tab navigation, but are not shared across separate tabs or origins. Forks inherit the form and code, not a visitor's saved settings. **Clear settings** removes the connection and resets the form. Direct app visits without saved settings show a configuration error and do not send AEM requests.
+
+AEM connection settings come exclusively from the browser session: neither app reads them from `.env` files or GitHub repository variables. The Pages workflow needs no AEM configuration and only supplies static asset/base paths derived from the repository name. For local previews, serve the landing page, its shared settings script, and both built apps on the same origin; separate development-server ports do not share session settings.
+
+Browser storage is accessible to scripts on the same origin, so use only short-lived demo tokens. Tokens are sent in the `Authorization: Bearer` header, never in query strings; a proxy must allow and forward this header to AEM. Proxies that only accept an `aemToken` query parameter must be updated. AEM or the trusted proxy must allow CORS requests from the hosted site. The Pages workflow no longer embeds `AEM_AUTH_TOKEN` in public builds.
+
+If the browser reports a preflight CORS failure, the proxy's `OPTIONS` response must include `Access-Control-Allow-Origin` for the demo origin, `Access-Control-Allow-Methods` including `GET`, and `Access-Control-Allow-Headers` including `Authorization`. Actual responses, including errors, must also include the allowed origin. A `204` response without these headers is not sufficient. Adobe I/O Runtime custom preflight handlers require the `web-custom-options` annotation; see [Adobe's CORS guidance](https://developer.adobe.com/app-builder/docs/guides/runtime_guides/creating-rest-apis). This must be fixed on the proxy, not by disabling browser CORS or using `no-cors`.
+
+The shared browser transport omits cookies even when the AEM SDK enables them for authentication. Only the explicitly supplied Bearer header authenticates requests, so the proxy does not need credentialed-cookie CORS permission.
 
 ## Contributing
 

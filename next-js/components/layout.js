@@ -12,10 +12,12 @@
  */
 
 import Head from 'next/head';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from "next/router";
 import { Disclosure } from '@headlessui/react';
 import { MenuIcon, XIcon } from '@heroicons/react/outline';
+import { getAemConfig } from '../lib/aem-headless-client';
 
 export const siteTitle = 'WKND';
 
@@ -28,27 +30,38 @@ function classNames(...classes) {
 }
 
 export default function Layout({ children }) {
+  const [authorURL, setAuthorURL] = useState('');
+  const [connectionReady, setConnectionReady] = useState(false);
+  useEffect(() => {
+    try {
+      setAuthorURL(getAemConfig().aemHost);
+      setConnectionReady(true);
+    } catch (error) {
+      console.error('Could not initialize the Universal Editor connection:', error);
+    }
+  }, []);
   const router = useRouter();
+  const basePath = router.basePath;
   const isCurrentPage = (path) => {
     return path === '/' ? router.pathname === '/' : router.pathname.indexOf(path) === 0
   };
   return (
     <div className="min-h-full">
       <Head>
-        <link rel="icon" href={(process.env.NEXT_PUBLIC_BASE_PATH || "") + "/favicon.ico"} />
+        <link rel="icon" href={basePath + "/favicon.ico"} />
         <meta
           name="description"
           content="AEM WKND built in Next.js"
         />
         <meta
           property="og:image"
-          content={`${process.env.NEXT_PUBLIC_URL}/wknd-logo-dk.svg`}
+          content={`${basePath}/wknd-logo-dk.svg`}
         />
         <meta name="og:title" content={siteTitle} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta property="cq:pagemodel_router" content="disabled" />
-        <meta name="urn:adobe:aue:system:aemconnection" content={`aem:${process.env.NEXT_PUBLIC_UE_AEM_AUTHOR_URI || ''}`} />
-        <script src="https://universal-editor-service.adobe.io/cors.js" async></script>
+        <meta name="urn:adobe:aue:system:aemconnection" content={`aem:${authorURL}`} />
+        {connectionReady && <script src="https://universal-editor-service.adobe.io/cors.js" async></script>}
       </Head>
 
       <Disclosure as="nav" className="bg-gray-100">
@@ -70,15 +83,15 @@ export default function Layout({ children }) {
 
                 <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
                   <div className="flex-shrink-0 flex items-center">
-                    <a href={(process.env.NEXT_PUBLIC_BASE_PATH || '') + '/'}>
+                    <a href={basePath + '/'}>
                       <img
                         className="block lg:hidden h-8 w-auto"
-                        src={process.env.NEXT_PUBLIC_URL + "/wknd-logo-dk.svg"}
+                        src={basePath + "/wknd-logo-dk.svg"}
                         alt="WKND"
                       />
                       <img
                         className="hidden lg:block h-8 w-auto"
-                        src={process.env.NEXT_PUBLIC_URL + "/wknd-logo-dk.svg"}
+                        src={basePath + "/wknd-logo-dk.svg"}
                         alt="WKND"
                       />
                     </a>

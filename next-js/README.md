@@ -8,7 +8,17 @@ This application is loosely based on the [Adobe Next.js Template](https://github
 
 ## How to use
 
-Visit Adobe Experience League for [instructions on how to run this Next.js app](https://experienceleague.adobe.com/docs/experience-manager-learn/getting-started-with-aem-headless/how-to/example-apps/next-js.html).
+Open the [demo landing page](../.github/pages/index.html) on the hosted site, enter your AEM Author URL and temporary access token, and select **Save settings**. The proxy URL and GraphQL namespace (`wknd-shared`) are read-only. Open the Next.js app card in the same tab.
+
+The app fetches content in the browser using only the saved session settings. No AEM environment files or repository variables are required. Without saved settings, it displays a configuration error instead of making AEM requests.
+
+To build locally:
+
+```shell
+cd next-js
+npm ci
+npm run export
+```
 
 
 ## System Requirements
@@ -18,6 +28,10 @@ Visit Adobe Experience League for [instructions on how to run this Next.js app](
 Continual               | 6.5.13+ |  [WKND Shared 2.0+](https://github.com/adobe/aem-guides-wknd-shared/releases/latest) or [WKND Site 2.0+](https://github.com/adobe/aem-guides-wknd/releases/latest)| 10+  | 6+
 
 ## Notes
+
+For a local combined preview, serve the landing page, shared settings script, and built apps on the same origin, with paths matching the build. Separate development-server ports do not share session settings. The Pages workflow derives the static base path from the repository name; this is a hosting setting, not an AEM connection setting.
+
+GraphQL requests always go through the saved demo proxy. Tokens are sent as Bearer headers, not URL parameters. The proxy must allow CORS requests from the demo origin and forward `Authorization` to AEM.
 
 ## Documentation
 

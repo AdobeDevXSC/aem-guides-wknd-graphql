@@ -70,12 +70,6 @@ jobs:
           ${{ steps.detect-package-manager.outputs.runner }} next export
         env:
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}/next-js
-          NEXT_PUBLIC_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/next-js
-          NEXT_PUBLIC_AEM_HOST: ${{ vars.AEM_AUTHOR_URL }}
-          NEXT_PUBLIC_UE_AEM_AUTHOR_URI: ${{ vars.AEM_AUTHOR_URL }}
-          NEXT_PUBLIC_AEM_PROXY_URL: ${{ vars.AEM_PROXY_URL }}
-          NEXT_PUBLIC_AEM_AUTH_TOKEN: ${{ vars.AEM_AUTH_TOKEN }}
-          NEXT_PUBLIC_AEM_GRAPHQL_ENDPOINT: ${{ vars.NEXT_PUBLIC_AEM_GRAPHQL_ENDPOINT }}
 
       - name: Install React app dependencies
         working-directory: ./react-app
@@ -86,23 +80,15 @@ jobs:
         run: npm run build
         env:
           PUBLIC_URL: /${{ github.event.repository.name }}/react-app
-          REACT_APP_USE_HASH_ROUTER: "true"
-          REACT_APP_USE_PROXY: "false"
-          REACT_APP_PROXY_URL: ${{ vars.AEM_PROXY_URL }}
-          REACT_APP_AUTH_TOKEN: ${{ vars.AEM_AUTH_TOKEN }}
-          REACT_APP_HOST_URI: ${{ vars.AEM_AUTHOR_URL }}
-          REACT_APP_GRAPHQL_ENDPOINT: ${{ vars.NEXT_PUBLIC_AEM_GRAPHQL_ENDPOINT }}
-          REACT_APP_UE_AEM_AUTHOR_URI: ${{ vars.AEM_AUTHOR_URL }}
 
       - name: Assemble site
-        env:
-          AEM_AUTHOR_URL: ${{ vars.AEM_AUTHOR_URL }}
         run: |
           mkdir -p site
           cp -R out site/next-js
           cp -R ../react-app/build site/react-app
           touch site/.nojekyll
-          sed "s|%AEM_AUTHOR_URL%|$AEM_AUTHOR_URL|" ../.github/pages/index.html > site/index.html
+          cp ../.github/pages/index.html site/index.html
+          cp ../react-app/src/sessionConfig.js site/session-config.js
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

@@ -12,6 +12,11 @@
  */
 
 import AEMHeadless from '@adobe/aem-headless-client-js';
+import sessionConfig from '../../react-app/src/sessionConfig';
+
+export function getAemConfig() {
+  return sessionConfig.requireConfig(sessionConfig.appRootPath('next-js'));
+}
 
 
 /**
@@ -20,51 +25,20 @@ import AEMHeadless from '@adobe/aem-headless-client-js';
  * - getters that invoke AEM GraphQL persisted queries
  * - helper functions for resources, such as images, that need to be served from AEM
  */
-function withProxyParams(url, aemHost, token) {
-  const params = new URLSearchParams();
-  if (aemHost) params.set('aemHost', aemHost.replace(/\/+$/, ''));
-  if (token) params.set('aemToken', token);
-  const qs = params.toString();
-  return qs ? `${url}${String(url).includes('?') ? '&' : '?'}${qs}` : url;
-}
-
 class AemHeadlessClient {
-  aemHost; 
-
   /**
    * Create an instance of the AEM Headles Client for JS used to communicate with AEM Headless GraphQL endpoints.
    * 
-   * @param {*} serviceURL the AEM HOST this Next.js app will connect to.
+   * @param {*} config the runtime AEM connection settings.
    */
-  constructor({ serviceURL, proxyURL }) {
-    // Images are always served from the AEM host. GraphQL requests go through the proxy when one is configured
-    // (e.g. a CORS proxy for static hosting such as GitHub Pages), otherwise straight to AEM.
-    this.aemHost = serviceURL;
-    
-    this.aemHeadlessClient = new AEMHeadless({
-      serviceURL: proxyURL || serviceURL,
+  getClient(config) {
+    return new AEMHeadless({
+      serviceURL: config.proxyURL,
       endpoint: 'The endpoint is not used as it only applies to client-side GraphQL queries which are not Adobe best practices.',
-      auth: this._getAuth(),
+      auth: config.authToken,
       // wrapped so the browser's fetch keeps its window binding
-      // through the proxy, every request carries the AEM host and optional token as GET parameters
-      fetch: (url, options) => fetch(proxyURL ? withProxyParams(url, serviceURL, process.env.NEXT_PUBLIC_AEM_AUTH_TOKEN) : url, options)
+      fetch: (url, options) => sessionConfig.fetchRequest(url, options, config),
     });
-  }
-
-  /**
-   * Convenience method for turning auth schemes specified in the .env.* files into auth signatures recognized by the AEM Headless client for JS.
-   * @returns a valid auth object based on env variables
-   */
-  _getAuth() {
-    let auth;
-
-    if (process.env.AEM_AUTH_METHOD === 'basic') {
-      auth = [ process.env.AEM_AUTH_USER, process.env.AEM_AUTH_PASSWORD];
-    } else if (process.env.AEM_AUTH_METHOD === 'dev-token') {
-      auth = process.env.AEM_AUTH_DEV_TOKEN;
-    }
-    
-    return auth;
   }
 
   /**
@@ -76,7 +50,7 @@ class AemHeadlessClient {
   serveFromAem(url) {
     if (url.startsWith("/")) {
       // images always come from Publish, even when the AEM host is Author
-      const publishHost = (this.aemHost || '').replace('://author-', '://publish-');
+      const publishHost = getAemConfig().aemHost.replace('://author-', '://publish-');
       return new URL(url, publishHost).toString();
     }
     return url;  }
@@ -101,12 +75,12 @@ class AemHeadlessClient {
    * @returns a GraphQL response of all adventures.
    */
   async getAllAdventures(queryVariables = {}) {
-    const queryAdventuresAll = process.env.NEXT_PUBLIC_AEM_GRAPHQL_ENDPOINT + '/adventures-all';
-      
     try {
-      return await this.aemHeadlessClient.runPersistedQuery(queryAdventuresAll, queryVariables);
+      const config = getAemConfig();
+      return await this.getClient(config).runPersistedQuery(config.graphqlEndpoint + '/adventures-all', queryVariables);
     } catch(e) {
-      console.error(e)
+      console.error(e);
+      throw e;
     }    
   }
 
@@ -140,12 +114,12 @@ class AemHeadlessClient {
    */
   async getAdventuresBySlug(slug, queryVariables = {}) {
     queryVariables = {...queryVariables, 'slug': slug};
-    const queryAdventuresBySlug = process.env.NEXT_PUBLIC_AEM_GRAPHQL_ENDPOINT + '/adventure-by-slug';
-
     try {
-      return await this.aemHeadlessClient.runPersistedQuery(queryAdventuresBySlug, queryVariables);
+      const config = getAemConfig();
+      return await this.getClient(config).runPersistedQuery(config.graphqlEndpoint + '/adventure-by-slug', queryVariables);
     } catch(e) {
       console.error(e);
+      throw e;
     }
   }
 }
@@ -153,7 +127,4 @@ class AemHeadlessClient {
 /**
  * Export the initialized AEM Headless client object for use in the Next.js app
  */
-export default new AemHeadlessClient({
-  serviceURL: process.env.NEXT_PUBLIC_AEM_HOST,
-  proxyURL: process.env.NEXT_PUBLIC_AEM_PROXY_URL,
-});
+export default new AemHeadlessClient();

@@ -9,59 +9,30 @@ it.
 
 // Use the AEM Headless SDK to make the GraphQL requests
 import AEMHeadless from "@adobe/aem-headless-client-js";
+import sessionConfig from "../sessionConfig";
 
-// environment variable for configuring the headless client
-const {
-  REACT_APP_HOST_URI,
-  REACT_APP_USE_PROXY,
-  REACT_APP_PROXY_URL,
-  REACT_APP_AUTH_METHOD,
-  REACT_APP_DEV_TOKEN,
-  REACT_APP_BASIC_AUTH_USER,
-  REACT_APP_BASIC_AUTH_PASS,
-} = process.env;
-
-// In a production application the serviceURL should be set to the production AEM Publish environment
-// In development the serviceURL can be set to '/' which will be a relative proxy is used (see ../authMethods.js) to avoid CORS issues
-
-// REACT_APP_PROXY_URL points at a CORS proxy (for example an Adobe I/O Runtime web action) for static hosting such as GitHub Pages
-const serviceURL = REACT_APP_PROXY_URL
-  ? REACT_APP_PROXY_URL
-  : REACT_APP_USE_PROXY === "true" ? "/" : REACT_APP_HOST_URI;
-
-// Get authorization based on environment variables
-// authorization is not needed when connecting to Publish environments
-const setAuthorization = () => {
-  if (REACT_APP_AUTH_METHOD === "basic") {
-    return [REACT_APP_BASIC_AUTH_USER, REACT_APP_BASIC_AUTH_PASS];
-  } else if (REACT_APP_AUTH_METHOD === "dev-token") {
-    return REACT_APP_DEV_TOKEN;
-  } else {
-    // no authentication set
-    return;
-  }
-};
+export function getAemConfig() {
+  return sessionConfig.requireConfig(sessionConfig.appRootPath("react-app"));
+}
 
 // Initialize the AEM Headless Client and export it for other files to use
-const aemHeadlessClient = new AEMHeadless({
-  serviceURL: serviceURL,
-  auth: setAuthorization(),
-  // through the proxy, every request carries the AEM host and optional token as GET parameters
-  fetch: (url, options) => {
-    if (!REACT_APP_PROXY_URL) return fetch(url, options);
-    const params = new URLSearchParams();
-    if (REACT_APP_HOST_URI) params.set("aemHost", REACT_APP_HOST_URI.replace(/\/+$/, ""));
-    if (process.env.REACT_APP_AUTH_TOKEN) params.set("aemToken", process.env.REACT_APP_AUTH_TOKEN);
-    const qs = params.toString();
-    return fetch(qs ? `${url}${String(url).includes("?") ? "&" : "?"}${qs}` : url, options);
+const aemHeadlessClient = {
+  runPersistedQuery(name, variables) {
+    const config = getAemConfig();
+    const client = new AEMHeadless({
+      serviceURL: config.proxyURL,
+      auth: config.authToken,
+      fetch: (url, options) => sessionConfig.fetchRequest(url, options, config),
+    });
+    return client.runPersistedQuery(name, variables);
   },
-});
+};
 
 // Prefix URLs with AEM Host
 export function addAemHost(url) {  
   if (url.startsWith("/")) {
     // images always come from Publish, even when the AEM host is Author
-    return new URL(url, (REACT_APP_HOST_URI || "").replace("://author-", "://publish-")).toString();
+    return new URL(url, getAemConfig().aemHost.replace("://author-", "://publish-")).toString();
   }
   return url;
 }

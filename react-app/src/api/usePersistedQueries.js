@@ -8,10 +8,7 @@ it.
 */
 
 import { useEffect, useState } from "react";
-import aemHeadlessClient from "./aemHeadlessClient";
-
-// environment variable for configuring the headless client
-const { DISABLE_CACHE, REACT_APP_GRAPHQL_ENDPOINT} = process.env;
+import aemHeadlessClient, { getAemConfig } from "./aemHeadlessClient";
 
 /**
  * This file contains the React useEffect custom hooks that:
@@ -35,29 +32,22 @@ async function fetchPersistedQuery(persistedQueryName, queryParameters) {
   let data;
   let err;
 
-  // Do NOT disable cache in production. This toggle is this demo app is only to help you quickly explore AEM's Headless APIs without having to wait for cache expiration to see changes.
-  if (DISABLE_CACHE === "true") {
-    if (queryParameters === "undefined") {
-      queryParameters = {};
-    }
-    queryParameters.timestamp = new Date().getTime();
-  }
-
   try {
+    const namespace = getAemConfig().graphqlEndpoint;
     // AEM GraphQL queries are asynchronous, either await their return or use Promise-based .then(..) { ... } syntax
     const response = await aemHeadlessClient.runPersistedQuery(
-      persistedQueryName,
+      namespace + "/" + persistedQueryName,
       queryParameters
     );
     // The GraphQL data is stored on the response's data field
     data = response?.data;
   } catch (e) {
     // An error occurred, return the error messages
-    err = e
-      .toJSON()
-      ?.map((error) => error.message)
-      ?.join(", ");
-    console.error(e.toJSON());
+    const details = typeof e.toJSON === "function" ? e.toJSON() : null;
+    err = Array.isArray(details)
+      ? details.map((error) => error.message).join(", ") || e.message
+      : details?.message || e.message;
+    console.error(e);
   }
 
   return { data, err };
@@ -87,10 +77,10 @@ export function useAdventuresByActivity(adventureActivity, params) {
         queryVariables = { ...queryVariables, activity: adventureActivity };
 
         // Call the AEM GraphQL persisted query named "[graphql endpoint namespace]/adventures-by-activity" with parameters
-        response = await fetchPersistedQuery(REACT_APP_GRAPHQL_ENDPOINT + "/adventures-by-activity", queryVariables);
+        response = await fetchPersistedQuery("adventures-by-activity", queryVariables);
       } else {
         // Call the AEM GraphQL persisted query named "[graphql endpoint namespace]/adventures-all"
-        response = await fetchPersistedQuery(REACT_APP_GRAPHQL_ENDPOINT + "/adventures-all", queryVariables);
+        response = await fetchPersistedQuery("adventures-all", queryVariables);
       }
 
       // Sets the adventures variable to the list of adventure JSON objects
@@ -105,7 +95,7 @@ export function useAdventuresByActivity(adventureActivity, params) {
   }, [adventureActivity, params]);
 
   // Returns the adventures and errors
-  return { adventures, errors };
+  return { adventures, error: errors };
 }
 
 /**
@@ -132,7 +122,7 @@ export function useAdventureBySlug(slugName, params) {
 
       // Call the AEM GraphQL persisted query named "[graphql endpoint namespace]/adventure-by-slug" with parameters
       response = await fetchPersistedQuery(
-        REACT_APP_GRAPHQL_ENDPOINT + "/adventure-by-slug",
+        "adventure-by-slug",
         queryVariables
       );
 
@@ -155,7 +145,7 @@ export function useAdventureBySlug(slugName, params) {
 
   }, [slugName, params]);
 
-  return { adventure, references, errors };
+  return { adventure, references, error: errors };
 }
 
 
