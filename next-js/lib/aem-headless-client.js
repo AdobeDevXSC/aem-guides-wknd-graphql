@@ -58,14 +58,13 @@ class AemHeadlessClient {
 
 
   /**
-   * Picks the image URL for an AEM image reference and serves it from AEM.
-   * Prefers the Dynamic Media _dynamicUrl (resized, WebP), falling back to _path.
+   * Uses the image reference's _path to serve it from AEM.
    *
-   * @param {*} image an AEM image reference with _path and/or _dynamicUrl
+   * @param {*} image an AEM image reference with _path
    * @returns an absolute image URL, or undefined when there is no image
    */
   imageUrl(image) {
-    const url = image?._dynamicUrl || image?._path;
+    const url = image?._path;
     return url ? this.serveFromAem(url) : undefined;
   }
 

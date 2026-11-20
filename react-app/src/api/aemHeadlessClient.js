@@ -37,10 +37,9 @@ export function addAemHost(url) {
   return url;
 }
 
-// Picks the image URL for an AEM image reference.
-// Prefers the Dynamic Media _dynamicUrl (resized, WebP), falling back to _path.
+// Uses the image reference's _path to serve it from AEM.
 export function imageUrl(image) {
-  const url = image?._dynamicUrl || image?._path;
+  const url = image?._path;
   return url ? addAemHost(url) : undefined;
 }
 
